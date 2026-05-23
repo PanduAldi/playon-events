@@ -184,7 +184,6 @@
                             <th>Tanggal Event</th>
                             <th>Lokasi</th>
                             <th>Tipe</th>
-                            <th>Kuota</th>
                             <th>Status</th>
                             <th>Aksi</th>
                         </tr>
@@ -212,9 +211,6 @@
                                         <?php else: ?>
                                             <span class="badge badge-info">Berbayar</span>
                                         <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <?= esc((string) ($event['quota'] > 0 ? $event['quota'] : 'Tak Terbatas')) ?>
                                     </td>
                                     <td>
                                         <?php if ($event['status'] === 'active'): ?>

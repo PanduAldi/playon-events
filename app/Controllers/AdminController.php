@@ -299,7 +299,6 @@ class AdminController extends BaseController
             'registration_close' => 'required',
             'status' => 'required|in_list[draft,active,closed,finished]',
             'event_type' => 'required|in_list[free,paid]',
-            'quota' => 'required|numeric|greater_than_equal_to[0]',
         ];
 
         if (!$this->validate($rules)) {
@@ -344,7 +343,6 @@ class AdminController extends BaseController
                 'status' => $this->request->getPost('status'),
                 'event_type' => $this->request->getPost('event_type'),
                 'allow_waitlist' => $this->request->getPost('allow_waitlist') ? 1 : 0,
-                'quota' => $this->request->getPost('quota'),
             ]);
 
             // Save categories
@@ -418,7 +416,6 @@ class AdminController extends BaseController
             'registration_close' => 'required',
             'status' => 'required|in_list[draft,active,closed,finished]',
             'event_type' => 'required|in_list[free,paid]',
-            'quota' => 'required|numeric|greater_than_equal_to[0]',
         ];
 
         if (!$this->validate($rules)) {
@@ -466,7 +463,6 @@ class AdminController extends BaseController
             'status' => $this->request->getPost('status'),
             'event_type' => $this->request->getPost('event_type'),
             'allow_waitlist' => $this->request->getPost('allow_waitlist') ? 1 : 0,
-            'quota' => $this->request->getPost('quota'),
         ]);
 
         return redirect()->to('/admin/events')->with('success', 'Event berhasil diperbarui.');

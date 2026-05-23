@@ -12,7 +12,7 @@ class EventModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['slug', 'name', 'description', 'event_date', 'location', 'maps_url', 'banner_image', 'registration_open', 'registration_close', 'status', 'event_type', 'allow_waitlist', 'quota'];
+    protected $allowedFields    = ['slug', 'name', 'description', 'event_date', 'location', 'maps_url', 'banner_image', 'registration_open', 'registration_close', 'status', 'event_type', 'allow_waitlist'];
 
     // Dates
     protected $useTimestamps = true;

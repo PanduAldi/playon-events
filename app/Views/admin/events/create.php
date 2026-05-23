@@ -262,11 +262,6 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label" for="quota">Kuota Maksimal Event (Kumulatif)</label>
-                        <input type="number" id="quota" name="quota" class="form-control" placeholder="Contoh: 1000 (Isi 0 jika tidak dibatasi)" value="<?= old('quota', 0) ?>" min="0" required>
-                    </div>
-                    
                     <div class="form-group" style="margin-bottom: var(--space-2xl);">
                         <label class="form-label" for="banner_image">Banner Image (Maks. 2MB)</label>
                         <input type="file" id="banner_image" name="banner_image" class="form-control" accept="image/*">
