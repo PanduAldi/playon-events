@@ -66,7 +66,36 @@ class EventController extends BaseController
         return view('public/checkout', $data);
     }
 
-    public function processCheckout($slug)
+    public function communityRegister($slug)
+    {
+        $eventModel = new EventModel();
+        $categoryModel = new CategoryModel();
+
+        $event = $eventModel->getEventBySlug($slug);
+        if (!$event || $event['status'] !== 'active') {
+            return redirect()->to('/')->with('error', 'Event tidak valid atau tidak aktif.');
+        }
+
+        $categories = $categoryModel->getCategoriesByEvent($event['id']);
+        $availableCategories = [];
+        foreach ($categories as $cat) {
+            if ($cat['registered_count'] < $cat['max_participants']) {
+                $availableCategories[] = $cat;
+            }
+        }
+
+        if (empty($availableCategories)) {
+            return redirect()->to('/')->with('error', 'Semua kategori sudah penuh.');
+        }
+
+        return view('public/community_checkout', [
+            'event' => $event,
+            'categories' => $availableCategories,
+            'recaptchaSiteKey' => getenv('recaptcha.siteKey') ?: ''
+        ]);
+    }
+
+    public function processCommunityRegistration($slug)
     {
         $eventModel = new EventModel();
         $categoryModel = new CategoryModel();
@@ -81,41 +110,69 @@ class EventController extends BaseController
 
         $rules = [
             'category_id' => 'required|numeric',
-            'full_name' => 'required|min_length[3]',
-            'phone' => 'required|numeric',
             'email' => 'required|valid_email',
-            'birth_date' => 'required|valid_date',
-            'gender' => 'required|in_list[M,F]',
-            'emergency_contact' => 'required',
+            'phone' => 'required|numeric',
+            'club_name' => 'required|min_length[3]',
             'recaptcha_token' => 'required'
         ];
 
         $recaptchaToken = $this->request->getPost('recaptcha_token');
-        $recaptchaValid = $this->verifyRecaptchaToken($recaptchaToken);
+        $recaptchaValid = $this->verifyRecaptchaToken($recaptchaToken, 'community');
         if (!$recaptchaValid['success']) {
             return redirect()->back()->withInput()->with('error', $recaptchaValid['message']);
         }
 
-        $ip = $this->request->getIPAddress();
-        $cache = \Config\Services::cache();
-        $cacheKey = 'checkout_attempt_' . md5($ip);
-        $attempts = (int) $cache->get($cacheKey);
-
-        if ($attempts >= 10) {
-            return redirect()->back()->withInput()->with('error', 'Terlalu banyak percobaan pendaftaran. Silakan coba lagi setelah beberapa menit.');
-        }
-
         if (!$this->validate($rules)) {
-            $cache->save($cacheKey, $attempts + 1, 900);
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
+        $runners = $this->request->getPost('runners');
+        if (!is_array($runners) || empty($runners)) {
+            return redirect()->back()->withInput()->with('error', 'Masukkan minimal satu pelari untuk pendaftaran komunitas.');
+        }
+
+        $runnerData = [];
+        foreach ($runners as $index => $runner) {
+            $fullName = trim($runner['full_name'] ?? '');
+            $gender = $runner['gender'] ?? '';
+            $birthDate = trim($runner['birth_date'] ?? '');
+
+            if ($fullName === '' && $gender === '' && $birthDate === '') {
+                continue;
+            }
+
+            if ($fullName === '') {
+                return redirect()->back()->withInput()->with('error', 'Nama pelari pada baris ' . ($index + 1) . ' tidak boleh kosong.');
+            }
+
+            if (!in_array($gender, ['M', 'F'], true)) {
+                return redirect()->back()->withInput()->with('error', 'Jenis kelamin pelari pada baris ' . ($index + 1) . ' tidak valid.');
+            }
+
+            if ($birthDate !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $birthDate)) {
+                return redirect()->back()->withInput()->with('error', 'Tanggal lahir pelari pada baris ' . ($index + 1) . ' harus dalam format YYYY-MM-DD.');
+            }
+
+            if ($birthDate === '') {
+                $birthDate = date('Y-m-d', strtotime('-16 years'));
+            }
+
+            $runnerData[] = [
+                'full_name' => $fullName,
+                'gender' => $gender,
+                'birth_date' => $birthDate,
+            ];
+        }
+
+        if (empty($runnerData)) {
+            return redirect()->back()->withInput()->with('error', 'Masukkan minimal satu pelari untuk pendaftaran komunitas.');
+        }
+
         $categoryId = $this->request->getPost('category_id');
-        
+
         $db->transBegin();
 
         try {
-            // Lock row untuk kategori yang dipilih
             $categorySql = $db->table('event_categories')
                               ->where('id', $categoryId)
                               ->where('event_id', $event['id'])
@@ -127,115 +184,87 @@ class EventController extends BaseController
                 throw new \Exception('Kategori tidak valid.');
             }
 
-            if ($category['registered_count'] >= $category['max_participants']) {
-                throw new \Exception('Maaf, kuota untuk kategori ini sudah penuh.');
+            $requiredSeats = count($runnerData);
+            if ($category['registered_count'] + $requiredSeats > $category['max_participants']) {
+                throw new \Exception('Maaf, kuota tidak mencukupi untuk jumlah pelari komunitas yang dimasukkan.');
             }
 
-            // Simpan Data Participant
-            $participantData = [
-                'full_name' => $this->request->getPost('full_name'),
-                'phone' => $this->request->getPost('phone'),
-                'email' => $this->request->getPost('email'),
-                'birth_date' => $this->request->getPost('birth_date'),
-                'gender' => $this->request->getPost('gender'),
-                'shirt_size' => $this->request->getPost('shirt_size') ?: null,
-                'club_name' => $this->request->getPost('club_name') ?: null,
-                'emergency_contact' => $this->request->getPost('emergency_contact'),
-                'medical_notes' => $this->request->getPost('medical_notes') ?: null,
-            ];
+            $savedRegistrations = [];
+            $paymentStatus = ($event['event_type'] === 'free' || $category['fee'] == 0) ? 'free' : 'unpaid';
 
-            // Cek jika email sudah ada (bisa diupdate atau insert baru, asumsi sederhana insert baru jika tidak mau ribet)
-            // Namun sebaiknya dicari dulu berdasarkan email.
-            $existingParticipant = $participantModel->where('email', $participantData['email'])->first();
-            if ($existingParticipant) {
-                $participantId = $existingParticipant['id'];
-                $participantModel->update($participantId, $participantData);
-            } else {
+            foreach ($runnerData as $runnerIndex => $runner) {
+                $participantData = [
+                    'full_name' => $runner['full_name'],
+                    'phone' => $this->request->getPost('phone'),
+                    'email' => $this->request->getPost('email'),
+                    'birth_date' => $runner['birth_date'],
+                    'gender' => $runner['gender'],
+                    'shirt_size' => null,
+                    'club_name' => $this->request->getPost('club_name') ?: null,
+                    'medical_notes' => null,
+                ];
+
                 $participantId = $participantModel->insert($participantData);
+
+                $bibNumber = 'BIB-' . strtoupper(substr($event['slug'], 0, 3)) . '-' . $category['code'] . '-' . str_pad($category['registered_count'] + $runnerIndex + 1, 4, '0', STR_PAD_LEFT);
+                $qrToken = hash('sha256', $participantId . '-' . $event['id'] . '-' . time() . '-' . $runnerIndex);
+
+                $registrationId = $registrationModel->insert([
+                    'participant_id' => $participantId,
+                    'event_id' => $event['id'],
+                    'category_id' => $categoryId,
+                    'bib_number' => $bibNumber,
+                    'qr_token' => $qrToken,
+                    'payment_status' => $paymentStatus,
+                    'status' => $paymentStatus === 'free' ? 'confirmed' : 'pending',
+                    'registered_at' => date('Y-m-d H:i:s')
+                ]);
+
+                $savedRegistrations[] = [
+                    'bib' => $bibNumber,
+                    'name' => $runner['full_name']
+                ];
             }
 
-            // Generate BIB
-            $bibNumber = 'BIB-' . strtoupper(substr($event['slug'], 0, 3)) . '-' . $category['code'] . '-' . str_pad($category['registered_count'] + 1, 4, '0', STR_PAD_LEFT);
-            $qrToken = hash('sha256', $participantId . '-' . $event['id'] . '-' . time());
-            $paymentStatus = ($event['event_type'] == 'free' || $category['fee'] == 0) ? 'free' : 'unpaid';
-
-            // Insert Registration
-            $regData = [
-                'participant_id' => $participantId,
-                'event_id' => $event['id'],
-                'category_id' => $categoryId,
-                'bib_number' => $bibNumber,
-                'qr_token' => $qrToken,
-                'payment_status' => $paymentStatus,
-                'status' => 'pending', // or confirmed for free
-                'registered_at' => date('Y-m-d H:i:s')
-            ];
-
-            if ($paymentStatus == 'free') {
-                $regData['status'] = 'confirmed';
-            }
-
-            // Check for duplicate registration
-            $existingReg = $registrationModel->where([
-                'participant_id' => $participantId,
-                'event_id' => $event['id'],
-                'category_id' => $categoryId
-            ])->first();
-
-            if ($existingReg) {
-                throw new \Exception('Anda sudah terdaftar di event dan kategori ini.');
-            }
-
-            $registrationId = $registrationModel->insert($regData);
-
-            // Increment registered_count
             $db->table('event_categories')
                ->where('id', $categoryId)
-               ->set('registered_count', 'registered_count + 1', false)
+               ->set('registered_count', 'registered_count + ' . $requiredSeats, false)
                ->update();
 
             $db->transCommit();
-            $cache->delete($cacheKey);
 
-            $emailStatus = '';
-            try {
-                $categoryName = $category['name'];
-                $paymentLabel = $paymentStatus === 'free' ? 'Gratis / Terbayar otomatis' : 'Belum dibayar';
+            $emailBody = '<p>Halo Koordinator,</p>';
+            $emailBody .= '<p>Pendaftaran komunitas Anda untuk event <strong>' . htmlspecialchars($event['name'], ENT_QUOTES, 'UTF-8') . '</strong> berhasil diproses.</p>';
+            $emailBody .= '<p>Detail kategori: <strong>' . htmlspecialchars($category['name'], ENT_QUOTES, 'UTF-8') . '</strong></p>';
+            $emailBody .= '<p>Jumlah pelari: <strong>' . count($savedRegistrations) . '</strong></p>';
+            $emailBody .= '<ul>';
+            foreach ($savedRegistrations as $saved) {
+                $emailBody .= '<li>' . htmlspecialchars($saved['name'], ENT_QUOTES, 'UTF-8') . ' - BIB: ' . htmlspecialchars($saved['bib'], ENT_QUOTES, 'UTF-8') . '</li>';
+            }
+            $emailBody .= '</ul>';
 
-                $emailBody = "<p>Halo " . htmlspecialchars($participantData['full_name'], ENT_QUOTES, 'UTF-8') . ",</p>";
-                $emailBody .= "<p>Terima kasih telah mendaftar pada event <strong>" . htmlspecialchars($event['name'], ENT_QUOTES, 'UTF-8') . "</strong> dalam kategori <strong>" . htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8') . "</strong>.</p>";
-                $emailBody .= "<ul>";
-                $emailBody .= "<li><strong>Nomor BIB:</strong> " . htmlspecialchars($bibNumber, ENT_QUOTES, 'UTF-8') . "</li>";
-                $emailBody .= "<li><strong>Status Pembayaran:</strong> " . htmlspecialchars($paymentLabel, ENT_QUOTES, 'UTF-8') . "</li>";
-                $emailBody .= "</ul>";
-
-                if ($paymentStatus !== 'free') {
-                    $emailBody .= "<div style='padding: 16px; background-color: #fff4e5; border: 1px solid #ffddb2; border-radius: 8px; margin-top: 16px;'>";
-                    $emailBody .= "<p style='margin: 0 0 8px;'>Silakan melakukan pembayaran ke rekening berikut:</p>";
-                    $emailBody .= "<p style='margin: 0; font-weight: 600;'>Bank BCA - 1234567890 (a.n. Playon Brebes)</p>";
-                    $emailBody .= "<p style='margin: 16px 0 0 0;'>Setelah transfer, konfirmasi melalui WhatsApp Admin di <strong>0811-2222-3333</strong>.</p>";
-                    $emailBody .= "</div>";
-                }
-
-                $emailBody .= "<p style='margin-top: 24px;'>Semoga sukses dan sampai jumpa di event!</p>";
-
-                $emailResult = $this->sendMail(
-                    $participantData['email'], 
-                    'Pendaftaran Berhasil - ' . $event['name'], 
-                    $emailBody,
-                    true
-                );
-
-                if ($emailResult['success']) {
-                    session()->setFlashdata('email_status', 'Email konfirmasi telah dikirim ke ' . $participantData['email'] . '.');
-                } else {
-                    session()->setFlashdata('email_status', 'Pendaftaran berhasil, tetapi email konfirmasi gagal dikirim. ' . $emailResult['error']);
-                }
-            } catch (\Exception $e) {
-                session()->setFlashdata('email_status', 'Pendaftaran berhasil, tetapi email konfirmasi gagal dikirim: ' . $e->getMessage());
+            if ($paymentStatus !== 'free') {
+                $emailBody .= '<p>Semua pelari berstatus <strong>Belum dibayar</strong>. Silakan lakukan pembayaran dengan total sesuai jumlah pelari dan fee kategori.</p>';
+                $emailBody .= '<p>Rekening tujuan: <strong>Bank BCA - 1234567890 (a.n. Playon Brebes)</strong></p>';
+                $emailBody .= '<p>Setelah transfer, konfirmasi melalui WhatsApp Admin di <strong>0811-2222-3333</strong>.</p>';
             }
 
-            return redirect()->to('/event/' . $slug . '/success?reg=' . $registrationId);
+            $emailBody .= '<p>Terima kasih dan semoga sukses!</p>';
+
+            $emailResult = $this->sendMail(
+                $this->request->getPost('email'),
+                'Pendaftaran Komunitas Berhasil - ' . $event['name'], 
+                $emailBody,
+                true
+            );
+
+            if ($emailResult['success']) {
+                session()->setFlashdata('email_status', 'Link konfirmasi telah dikirim ke ' . $this->request->getPost('email') . '.');
+            } else {
+                session()->setFlashdata('email_status', 'Pendaftaran berhasil, tetapi email konfirmasi gagal dikirim. ' . $emailResult['error']);
+            }
+
+            return redirect()->to('/event/' . $slug . '/community/success?count=' . count($savedRegistrations) . '&category=' . $categoryId);
 
         } catch (\Exception $e) {
             $db->transRollback();
@@ -243,7 +272,33 @@ class EventController extends BaseController
         }
     }
 
-    protected function verifyRecaptchaToken(?string $token): array
+    public function communitySuccess($slug)
+    {
+        $count = (int) $this->request->getGet('count');
+        $categoryId = (int) $this->request->getGet('category');
+
+        $eventModel = new EventModel();
+        $categoryModel = new CategoryModel();
+
+        $event = $eventModel->getEventBySlug($slug);
+        if (!$event || $count <= 0) {
+            return redirect()->to('/');
+        }
+
+        $category = $categoryModel->find($categoryId);
+        if (!$category) {
+            return redirect()->to('/');
+        }
+
+        return view('public/community_success', [
+            'event' => $event,
+            'category' => $category,
+            'count' => $count,
+            'email_status' => session()->getFlashdata('email_status')
+        ]);
+    }
+
+    protected function verifyRecaptchaToken(?string $token, string $expectedAction = 'checkout'): array
     {
         $secret = getenv('recaptcha.secretKey') ?: '';
         if (empty($secret) || empty($token)) {
@@ -306,7 +361,7 @@ class EventController extends BaseController
 
         $score = $data['score'] ?? 0;
         $action = $data['action'] ?? '';
-        if ($action !== 'checkout' || $score < 0.4) {
+        if ($action !== $expectedAction || $score < 0.4) {
             return [
                 'success' => false,
                 'message' => 'reCAPTCHA tidak cukup kuat. Silakan coba lagi.'

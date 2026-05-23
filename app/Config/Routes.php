@@ -12,6 +12,9 @@ $routes->post('/email-test/send', 'Home::sendEmailTest');
 $routes->get('/event/(:segment)', 'EventController::detail/$1');
 $routes->get('/event/(:segment)/checkout', 'EventController::checkout/$1');
 $routes->post('/event/(:segment)/checkout', 'EventController::processCheckout/$1', ['filter' => 'honeypot']);
+$routes->get('/event/(:segment)/community', 'EventController::communityRegister/$1');
+$routes->post('/event/(:segment)/community', 'EventController::processCommunityRegistration/$1', ['filter' => 'honeypot']);
+$routes->get('/event/(:segment)/community/success', 'EventController::communitySuccess/$1');
 $routes->get('/event/(:segment)/success', 'EventController::success/$1');
 
 $routes->get('/login', 'AdminController::login');
