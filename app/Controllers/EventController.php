@@ -38,6 +38,7 @@ class EventController extends BaseController
 
     public function checkout($slug)
     {
+        //pldes
         $eventModel = new EventModel();
         $categoryModel = new CategoryModel();
         $registrationModel = new RegistrationModel();
