@@ -268,7 +268,21 @@
                 var form = document.querySelector('form');
                 if (!form) return;
 
+                var isSubmitting = false;
+                var submitButton = form.querySelector('button[type="submit"]');
+
                 form.addEventListener('submit', function (event) {
+                    if (isSubmitting) {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    isSubmitting = true;
+                    if (submitButton) {
+                        submitButton.disabled = true;
+                        submitButton.textContent = 'Mengirim...';
+                    }
+
                     event.preventDefault();
                     grecaptcha.ready(function () {
                         grecaptcha.execute('<?= esc($recaptchaSiteKey) ?>', { action: 'checkout' }).then(function (token) {
@@ -283,4 +297,26 @@
             });
         </script>
     <?php endif; ?>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var form = document.querySelector('form');
+            if (!form) return;
+
+            var isSubmitting = false;
+            var submitButton = form.querySelector('button[type="submit"]');
+
+            form.addEventListener('submit', function (event) {
+                if (isSubmitting) {
+                    event.preventDefault();
+                    return;
+                }
+
+                isSubmitting = true;
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.textContent = 'Mengirim...';
+                }
+            });
+        });
+    </script>
 <?= $this->endSection() ?>
