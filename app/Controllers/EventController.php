@@ -67,6 +67,127 @@ class EventController extends BaseController
         return view('public/checkout', $data);
     }
 
+    public function processCheckout($slug)
+    {
+        $eventModel = new EventModel();
+        $categoryModel = new CategoryModel();
+        $participantModel = new ParticipantModel();
+        $registrationModel = new RegistrationModel();
+        $db = \Config\Database::connect();
+
+        $event = $eventModel->getEventBySlug($slug);
+        if (!$event || $event['status'] !== 'active') {
+            return redirect()->to('/')->with('error', 'Event tidak valid.');
+        }
+
+        $rules = [
+            'category_id' => 'required|numeric',
+            'full_name' => 'required|min_length[3]',
+            'email' => 'required|valid_email',
+            'phone' => 'required|numeric',
+            'birth_date' => 'required|valid_date[Y-m-d]',
+            'gender' => 'required|in_list[M,F]',
+            'emergency_contact' => 'required|min_length[5]',
+            'recaptcha_token' => 'required'
+        ];
+
+        $recaptchaToken = $this->request->getPost('recaptcha_token');
+        $recaptchaValid = $this->verifyRecaptchaToken($recaptchaToken, 'checkout');
+        if (!$recaptchaValid['success']) {
+            return redirect()->back()->withInput()->with('error', $recaptchaValid['message']);
+        }
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $categoryId = $this->request->getPost('category_id');
+
+        $db->transBegin();
+
+        try {
+            $categorySql = $db->table('event_categories')
+                              ->where('id', $categoryId)
+                              ->where('event_id', $event['id'])
+                              ->getCompiledSelect() . ' FOR UPDATE';
+
+            $category = $db->query($categorySql)->getRowArray();
+            if (!$category) {
+                throw new \Exception('Kategori tidak valid.');
+            }
+
+            if ($category['registered_count'] >= $category['max_participants']) {
+                throw new \Exception('Maaf, kategori yang dipilih sudah penuh.');
+            }
+
+            $participantId = $participantModel->insert([
+                'full_name' => $this->request->getPost('full_name'),
+                'phone' => $this->request->getPost('phone'),
+                'email' => $this->request->getPost('email'),
+                'birth_date' => $this->request->getPost('birth_date'),
+                'gender' => $this->request->getPost('gender'),
+                'shirt_size' => $this->request->getPost('shirt_size') ?: null,
+                'club_name' => $this->request->getPost('club_name') ?: null,
+                'emergency_contact' => $this->request->getPost('emergency_contact'),
+                'medical_notes' => $this->request->getPost('medical_notes') ?: null,
+            ]);
+
+            $bibNumber = 'BIB-' . strtoupper(substr($event['slug'], 0, 3)) . '-' . $category['code'] . '-' . str_pad($category['registered_count'] + 1, 4, '0', STR_PAD_LEFT);
+            $qrToken = hash('sha256', $participantId . '-' . $event['id'] . '-' . time());
+
+            $paymentStatus = ($event['event_type'] === 'free' || $category['fee'] == 0) ? 'free' : 'unpaid';
+            $status = $paymentStatus === 'free' ? 'confirmed' : 'pending';
+
+            $registrationId = $registrationModel->insert([
+                'participant_id' => $participantId,
+                'event_id' => $event['id'],
+                'category_id' => $categoryId,
+                'bib_number' => $bibNumber,
+                'qr_token' => $qrToken,
+                'payment_status' => $paymentStatus,
+                'status' => $status,
+                'registered_at' => date('Y-m-d H:i:s')
+            ]);
+
+            $db->table('event_categories')
+               ->where('id', $categoryId)
+               ->set('registered_count', 'registered_count + 1', false)
+               ->update();
+
+            $db->transCommit();
+
+            $emailBody = '<p>Halo,</p>';
+            $emailBody .= '<p>Pendaftaran Anda untuk event <strong>' . htmlspecialchars($event['name'], ENT_QUOTES, 'UTF-8') . '</strong> berhasil.</p>';
+            $emailBody .= '<p>Kategori: <strong>' . htmlspecialchars($category['name'], ENT_QUOTES, 'UTF-8') . '</strong></p>';
+            $emailBody .= '<p>BIB: <strong>' . htmlspecialchars($bibNumber, ENT_QUOTES, 'UTF-8') . '</strong></p>';
+            if ($paymentStatus !== 'free') {
+                $emailBody .= '<p>Status pembayaran: <strong>Belum dibayar</strong>. Silakan transfer sesuai instruksi yang diberikan di halaman konfirmasi.</p>';
+            } else {
+                $emailBody .= '<p>Status: <strong>Gratis</strong>. Pendaftaran Anda telah dikonfirmasi.</p>';
+            }
+            $emailBody .= '<p>Terima kasih.</p>';
+
+            $emailResult = $this->sendMail(
+                $this->request->getPost('email'),
+                'Konfirmasi Pendaftaran - ' . $event['name'], 
+                $emailBody,
+                true
+            );
+
+            if ($emailResult['success']) {
+                session()->setFlashdata('email_status', 'Email konfirmasi telah dikirim ke ' . $this->request->getPost('email') . '.');
+            } else {
+                session()->setFlashdata('email_status', 'Pendaftaran berhasil, tetapi email konfirmasi gagal dikirim.');
+            }
+
+            return redirect()->to('/event/' . $slug . '/success?reg=' . $registrationId);
+
+        } catch (\Exception $e) {
+            $db->transRollback();
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
+    }
+
     public function communityRegister($slug)
     {
         $eventModel = new EventModel();
