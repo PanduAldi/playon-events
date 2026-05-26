@@ -83,6 +83,7 @@
                     </div>
                 <?php endif; ?>
 
+                <?php $errors = session('errors') ?? []; ?>
                 <form action="<?= base_url('event/' . esc($event['slug']) . '/checkout') ?>" method="post">
                     <?= csrf_field() ?>
                     <input type="hidden" name="recaptcha_token" id="recaptcha_token" value="">
@@ -97,7 +98,7 @@
                                 </label>
                             <?php endforeach; ?>
                         </div>
-                        <?php if(session('errors.category_id')): ?><div class="error-text"><?= session('errors.category_id') ?></div><?php endif; ?>
+                        <?php if (!empty($errors['category_id'])): ?><div class="error-text"><?= esc($errors['category_id']) ?></div><?php endif; ?>
                     </div>
 
                     <div style="display:none;">
@@ -110,19 +111,19 @@
                     <div class="form-group">
                         <label class="form-label">Nama Lengkap Sesuai KTP *</label>
                         <input type="text" name="full_name" class="form-control" value="<?= old('full_name') ?>" required>
-                        <?php if(session('errors.full_name')): ?><div class="error-text"><?= session('errors.full_name') ?></div><?php endif; ?>
+                        <?php if (!empty($errors['full_name'])): ?><div class="error-text"><?= esc($errors['full_name']) ?></div><?php endif; ?>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Email Aktif *</label>
                         <input type="email" name="email" class="form-control" value="<?= old('email') ?>" required>
-                        <?php if(session('errors.email')): ?><div class="error-text"><?= session('errors.email') ?></div><?php endif; ?>
+                        <?php if (!empty($errors['email'])): ?><div class="error-text"><?= esc($errors['email']) ?></div><?php endif; ?>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Nomor WhatsApp *</label>
-                        <input type="text" name="phone" class="form-control" value="<?= old('phone') ?>" required placeholder="08123456789">
-                        <?php if(session('errors.phone')): ?><div class="error-text"><?= session('errors.phone') ?></div><?php endif; ?>
+                        <input type="tel" name="phone" class="form-control" value="<?= old('phone') ?>" required placeholder="08123456789" pattern="[0-9]{9,15}">
+                        <?php if (!empty($errors['phone'])): ?><div class="error-text"><?= esc($errors['phone']) ?></div><?php endif; ?>
                     </div>
 
                     <div style="display: flex; gap: var(--space-md);">
@@ -161,7 +162,7 @@
                     <div class="form-group">
                         <label class="form-label">Kontak Darurat (Nama - Hubungan - Nomor HP) *</label>
                         <input type="text" name="emergency_contact" class="form-control" value="<?= old('emergency_contact') ?>" required placeholder="Contoh: Budi (Ayah) - 08123456789">
-                        <?php if(session('errors.emergency_contact')): ?><div class="error-text"><?= session('errors.emergency_contact') ?></div><?php endif; ?>
+                        <?php if (!empty($errors['emergency_contact'])): ?><div class="error-text"><?= esc($errors['emergency_contact']) ?></div><?php endif; ?>
                     </div>
 
                     <div class="form-group">

@@ -84,7 +84,7 @@ class EventController extends BaseController
             'category_id' => 'required|numeric',
             'full_name' => 'required|min_length[3]',
             'email' => 'required|valid_email',
-            'phone' => 'required|numeric',
+            'phone' => 'required|numeric|min_length[9]|max_length[15]',
             'birth_date' => 'required|valid_date[Y-m-d]',
             'gender' => 'required|in_list[M,F]',
             'emergency_contact' => 'required|min_length[5]',
@@ -118,6 +118,19 @@ class EventController extends BaseController
 
             if ($category['registered_count'] >= $category['max_participants']) {
                 throw new \Exception('Maaf, kategori yang dipilih sudah penuh.');
+            }
+
+            $existingRegistration = $db->table('registrations r')
+                ->select('r.id')
+                ->join('participants p', 'p.id = r.participant_id')
+                ->where('r.event_id', $event['id'])
+                ->where('p.email', $this->request->getPost('email'))
+                ->where('p.phone', $this->request->getPost('phone'))
+                ->get()
+                ->getRowArray();
+
+            if ($existingRegistration) {
+                return redirect()->back()->withInput()->with('error', 'Anda sudah terdaftar untuk event ini dengan email dan nomor WhatsApp yang sama.');
             }
 
             $participantId = $participantModel->insert([
