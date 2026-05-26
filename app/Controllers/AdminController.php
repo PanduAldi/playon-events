@@ -377,6 +377,8 @@ class AdminController extends BaseController
                         'code' => strtoupper($postedCat['code']),
                         'fee' => $postedCat['fee'] ?? 0,
                         'max_participants' => $postedCat['max_participants'] ?? 100,
+                        'max_individual' => $postedCat['max_individual'] ?? ($postedCat['max_participants'] ?? 100),
+                        'max_community' => $postedCat['max_community'] ?? ($postedCat['max_participants'] ?? 100),
                         'registered_count' => 0
                     ]);
                 }
@@ -516,6 +518,8 @@ class AdminController extends BaseController
             'code' => 'required|min_length[1]|max_length[20]',
             'fee' => 'required|numeric|greater_than_equal_to[0]',
             'max_participants' => 'required|numeric|greater_than[0]',
+            'max_individual' => 'required|numeric|greater_than_equal_to[0]',
+            'max_community' => 'required|numeric|greater_than_equal_to[0]',
         ];
 
         if (!$this->validate($rules)) {
@@ -528,6 +532,8 @@ class AdminController extends BaseController
             'code' => strtoupper($this->request->getPost('code')),
             'fee' => $this->request->getPost('fee'),
             'max_participants' => $this->request->getPost('max_participants'),
+            'max_individual' => $this->request->getPost('max_individual'),
+            'max_community' => $this->request->getPost('max_community'),
             'registered_count' => 0
         ]);
 
@@ -547,6 +553,8 @@ class AdminController extends BaseController
             'code' => 'required|min_length[1]|max_length[20]',
             'fee' => 'required|numeric|greater_than_equal_to[0]',
             'max_participants' => 'required|numeric|greater_than[0]',
+            'max_individual' => 'required|numeric|greater_than_equal_to[0]',
+            'max_community' => 'required|numeric|greater_than_equal_to[0]',
         ];
 
         if (!$this->validate($rules)) {
@@ -558,6 +566,8 @@ class AdminController extends BaseController
             'code' => strtoupper($this->request->getPost('code')),
             'fee' => $this->request->getPost('fee'),
             'max_participants' => $this->request->getPost('max_participants'),
+            'max_individual' => $this->request->getPost('max_individual'),
+            'max_community' => $this->request->getPost('max_community'),
         ]);
 
         return redirect()->to('/admin/events/edit/' . $category['event_id'])->with('cat_success', 'Kategori berhasil diperbarui.');

@@ -99,7 +99,12 @@
                         <select name="category_id" class="form-control" required>
                             <option value="">Pilih kategori...</option>
                             <?php foreach ($categories as $cat): ?>
-                                <option value="<?= $cat['id'] ?>" <?= old('category_id') == $cat['id'] ? 'selected' : '' ?>><?= esc($cat['name']) ?> (<?= $cat['fee'] > 0 ? 'Rp ' . number_format($cat['fee'], 0, ',', '.') : 'Gratis' ?>)</option>
+                                <option value="<?= $cat['id'] ?>" <?= old('category_id') == $cat['id'] ? 'selected' : '' ?>>
+                                    <?= esc($cat['name']) ?> (<?= $cat['fee'] > 0 ? 'Rp ' . number_format($cat['fee'], 0, ',', '.') : 'Gratis' ?>)
+                                    <?php if (!empty($cat['max_community'])): ?>
+                                        - Sisa Komunitas: <?= max(0, $cat['max_community'] - ($cat['community_registered_count'] ?? 0)) ?>
+                                    <?php endif; ?>
+                                </option>
                             <?php endforeach; ?>
                         </select>
                         <?php if(session('errors.category_id')): ?><div class="error-text"><?= session('errors.category_id') ?></div><?php endif; ?>

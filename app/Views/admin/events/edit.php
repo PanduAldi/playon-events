@@ -133,7 +133,9 @@
                     <th style="padding: 12px; text-align: left;">Nama Kategori</th>
                     <th style="padding: 12px; text-align: left;">Kode</th>
                     <th style="padding: 12px; text-align: left;">Biaya (Fee)</th>
-                    <th style="padding: 12px; text-align: left;">Kuota (Max)</th>
+                    <th style="padding: 12px; text-align: left;">Kuota Total</th>
+                    <th style="padding: 12px; text-align: left;">Kuota Pribadi</th>
+                    <th style="padding: 12px; text-align: left;">Kuota Komunitas</th>
                     <th style="padding: 12px; text-align: left;">Terdaftar</th>
                     <th style="padding: 12px; text-align: left;">Aksi</th>
                 </tr>
@@ -156,6 +158,12 @@
                                 <td style="padding: 12px;">
                                     <input type="number" name="max_participants" class="form-control" value="<?= $cat['max_participants'] ?>" required style="padding: 6px 10px; width: 100px;" min="1">
                                 </td>
+                                <td style="padding: 12px;">
+                                    <input type="number" name="max_individual" class="form-control" value="<?= isset($cat['max_individual']) ? $cat['max_individual'] : $cat['max_participants'] ?>" required style="padding: 6px 10px; width: 100px;" min="0">
+                                </td>
+                                <td style="padding: 12px;">
+                                    <input type="number" name="max_community" class="form-control" value="<?= isset($cat['max_community']) ? $cat['max_community'] : $cat['max_participants'] ?>" required style="padding: 6px 10px; width: 100px;" min="0">
+                                </td>
                                 <td style="padding: 12px; font-weight: bold; color: var(--color-ink);">
                                     <?= $cat['registered_count'] ?> / <?= $cat['max_participants'] ?>
                                 </td>
@@ -170,7 +178,7 @@
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="6" style="text-align: center; padding: 20px; color: var(--color-body-mid);">Belum ada kategori untuk event ini.</td>
+                        <td colspan="8" style="text-align: center; padding: 20px; color: var(--color-body-mid);">Belum ada kategori untuk event ini.</td>
                     </tr>
                 <?php endif; ?>
             </tbody>
@@ -195,8 +203,16 @@
                     <input type="number" id="new_fee" name="fee" class="form-control" placeholder="Contoh: 150000" value="0" required min="0">
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="new_max">Kuota Maksimal</label>
+                    <label class="form-label" for="new_max">Kuota Total</label>
                     <input type="number" id="new_max" name="max_participants" class="form-control" placeholder="Contoh: 200" required min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="new_max_individual">Kuota Pribadi</label>
+                    <input type="number" id="new_max_individual" name="max_individual" class="form-control" placeholder="Contoh: 100" required min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="new_max_community">Kuota Komunitas</label>
+                    <input type="number" id="new_max_community" name="max_community" class="form-control" placeholder="Contoh: 100" required min="0">
                 </div>
             </div>
 

@@ -104,7 +104,8 @@
                     ?>
                     
                     <?php foreach($categories as $cat): ?>
-                        <?php $catFull = $cat['registered_count'] >= $cat['max_participants']; ?>
+                        <?php $catTotal = $cat['total_registered'] ?? $cat['registered_count']; ?>
+                        <?php $catFull = $catTotal >= $cat['max_participants']; ?>
                         <div class="category-card" style="<?= $catFull ? 'opacity: 0.6; background-color: #f5f5f5;' : '' ?>">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div>
@@ -113,7 +114,13 @@
                                         <?php if ($catFull): ?>
                                             <span style="color: #c62828; font-weight: bold;">Kuota Penuh</span>
                                         <?php else: ?>
-                                            Sisa Kuota: <?= $cat['max_participants'] - $cat['registered_count'] ?>
+                                            Sisa Kuota: <?= $cat['max_participants'] - $catTotal ?>
+                                            <?php if (!empty($cat['max_individual'])): ?>
+                                                <br>Kuota Pribadi: <?= max(0, $cat['max_individual'] - ($cat['individual_registered_count'] ?? 0)) ?> dari <?= $cat['max_individual'] ?>
+                                            <?php endif; ?>
+                                            <?php if (!empty($cat['max_community'])): ?>
+                                                <br>Kuota Komunitas: <?= max(0, $cat['max_community'] - ($cat['community_registered_count'] ?? 0)) ?> dari <?= $cat['max_community'] ?>
+                                            <?php endif; ?>
                                         <?php endif; ?>
                                     </div>
                                 </div>

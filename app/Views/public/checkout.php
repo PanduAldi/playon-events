@@ -108,7 +108,12 @@
                                 <?php foreach($categories as $cat): ?>
                                     <label class="radio-label">
                                         <input type="radio" name="category_id" value="<?= $cat['id'] ?>" <?= old('category_id') == $cat['id'] ? 'checked' : '' ?> required>
-                                        <span><?= esc($cat['name']) ?> (<?= $cat['fee'] > 0 ? 'Rp ' . number_format($cat['fee'], 0, ',', '.') : 'Gratis' ?>)</span>
+                                        <span>
+                                            <?= esc($cat['name']) ?> (<?= $cat['fee'] > 0 ? 'Rp ' . number_format($cat['fee'], 0, ',', '.') : 'Gratis' ?>)
+                                            <?php if (!empty($cat['max_individual'])): ?>
+                                                <br><small style="color: var(--color-body-mid);">Sisa Kuota Pribadi: <?= max(0, $cat['max_individual'] - ($cat['individual_registered_count'] ?? 0)) ?></small>
+                                            <?php endif; ?>
+                                        </span>
                                     </label>
                                 <?php endforeach; ?>
                             </div>

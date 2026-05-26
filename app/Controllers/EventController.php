@@ -21,6 +21,15 @@ class EventController extends BaseController
         }
 
         $categories = $categoryModel->getCategoriesByEvent($event['id']);
+        $db = \Config\Database::connect();
+
+        foreach ($categories as &$cat) {
+            $counts = $this->getCategoryRegistrationCounts($db, $cat['id']);
+            $cat['individual_registered_count'] = $counts['individual'];
+            $cat['community_registered_count'] = $counts['community'];
+            $cat['total_registered'] = $counts['total'];
+        }
+        unset($cat);
 
         // Hitung total peserta terdaftar untuk seluruh event ini (exclude cancelled)
         $totalRegistered = $registrationModel->where('event_id', $event['id'])
@@ -36,6 +45,30 @@ class EventController extends BaseController
         return view('public/event_detail', $data);
     }
 
+    private function getCategoryRegistrationCounts($db, $categoryId)
+    {
+        $builder = $db->table('registrations')
+                      ->select('registration_type, COUNT(*) as total')
+                      ->where('category_id', $categoryId)
+                      ->where('status !=', 'cancelled')
+                      ->groupBy('registration_type');
+
+        $results = $builder->get()->getResultArray();
+        $counts = [
+            'individual' => 0,
+            'community' => 0,
+            'total' => 0,
+        ];
+
+        foreach ($results as $row) {
+            $type = $row['registration_type'] ?? 'individual';
+            $counts[$type] = (int) $row['total'];
+            $counts['total'] += (int) $row['total'];
+        }
+
+        return $counts;
+    }
+
     public function checkout($slug)
     {
         //pldes
@@ -49,11 +82,19 @@ class EventController extends BaseController
         }
 
         $categories = $categoryModel->getCategoriesByEvent($event['id']);
-        
-        // Filter out categories that are full
+        $db = \Config\Database::connect();
+
         $availableCategories = [];
-        foreach($categories as $cat) {
-            if ($cat['registered_count'] < $cat['max_participants']) {
+        foreach ($categories as $cat) {
+            $counts = $this->getCategoryRegistrationCounts($db, $cat['id']);
+            $cat['individual_registered_count'] = $counts['individual'];
+            $cat['community_registered_count'] = $counts['community'];
+            $cat['total_registered'] = $counts['total'];
+
+            $personalQuotaRemaining = $cat['max_individual'] > 0 ? $cat['max_individual'] - $cat['individual_registered_count'] : PHP_INT_MAX;
+            $availableTotal = $cat['max_participants'] - $cat['total_registered'];
+
+            if ($availableTotal > 0 && $personalQuotaRemaining > 0) {
                 $availableCategories[] = $cat;
             }
         }
@@ -116,8 +157,15 @@ class EventController extends BaseController
                 throw new \Exception('Kategori tidak valid.');
             }
 
-            if ($category['registered_count'] >= $category['max_participants']) {
+            $typeCounts = $this->getCategoryRegistrationCounts($db, $categoryId);
+            $availableTotal = $category['max_participants'] - $typeCounts['total'];
+            $availablePersonal = $category['max_individual'] > 0 ? $category['max_individual'] - $typeCounts['individual'] : PHP_INT_MAX;
+
+            if ($availableTotal <= 0) {
                 throw new \Exception('Maaf, kategori yang dipilih sudah penuh.');
+            }
+            if ($availablePersonal <= 0) {
+                throw new \Exception('Maaf, kuota pendaftaran pribadi untuk kategori ini sudah penuh.');
             }
 
             $existingRegistration = $db->table('registrations r')
@@ -213,9 +261,18 @@ class EventController extends BaseController
         }
 
         $categories = $categoryModel->getCategoriesByEvent($event['id']);
+        $db = \Config\Database::connect();
         $availableCategories = [];
         foreach ($categories as $cat) {
-            if ($cat['registered_count'] < $cat['max_participants']) {
+            $counts = $this->getCategoryRegistrationCounts($db, $cat['id']);
+            $cat['individual_registered_count'] = $counts['individual'];
+            $cat['community_registered_count'] = $counts['community'];
+            $cat['total_registered'] = $counts['total'];
+
+            $communityQuotaRemaining = $cat['max_community'] > 0 ? $cat['max_community'] - $cat['community_registered_count'] : PHP_INT_MAX;
+            $availableTotal = $cat['max_participants'] - $cat['total_registered'];
+
+            if ($availableTotal > 0 && $communityQuotaRemaining > 0) {
                 $availableCategories[] = $cat;
             }
         }
@@ -321,8 +378,15 @@ class EventController extends BaseController
             }
 
             $requiredSeats = count($runnerData);
-            if ($category['registered_count'] + $requiredSeats > $category['max_participants']) {
-                throw new \Exception('Maaf, kuota tidak mencukupi untuk jumlah pelari komunitas yang dimasukkan.');
+            $typeCounts = $this->getCategoryRegistrationCounts($db, $categoryId);
+            $availableTotal = $category['max_participants'] - $typeCounts['total'];
+            $availableCommunity = $category['max_community'] > 0 ? $category['max_community'] - $typeCounts['community'] : PHP_INT_MAX;
+
+            if ($availableTotal < $requiredSeats) {
+                throw new \Exception('Maaf, kuota total tidak mencukupi untuk jumlah pelari komunitas yang dimasukkan.');
+            }
+            if ($availableCommunity < $requiredSeats) {
+                throw new \Exception('Maaf, kuota komunitas untuk kategori ini tidak mencukupi.');
             }
 
             $savedRegistrations = [];

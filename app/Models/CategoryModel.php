@@ -12,7 +12,7 @@ class CategoryModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['event_id', 'name', 'code', 'max_participants', 'registered_count', 'fee', 'min_age', 'max_age'];
+    protected $allowedFields    = ['event_id', 'name', 'code', 'max_participants', 'max_individual', 'max_community', 'registered_count', 'fee', 'min_age', 'max_age'];
 
     public function getCategoriesByEvent($eventId)
     {
