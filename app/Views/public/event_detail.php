@@ -153,14 +153,8 @@
                 var orientationLabel = document.getElementById('thumbnailOrientationLabel');
                 if (thumbnail.naturalWidth >= thumbnail.naturalHeight) {
                     thumbnail.classList.add('landscape');
-                    if (orientationLabel) {
-                        orientationLabel.textContent = 'Orientasi: Landscape';
-                    }
                 } else {
                     thumbnail.classList.add('portrait');
-                    if (orientationLabel) {
-                        orientationLabel.textContent = 'Orientasi: Portrait';
-                    }
                 }
             }
 
