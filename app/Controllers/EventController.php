@@ -99,10 +99,13 @@ class EventController extends BaseController
             }
         }
 
+        $recaptchaSiteKey = getenv('recaptcha.siteKey') ?: '';
+
         $data = [
             'event' => $event,
             'categories' => $availableCategories,
-            'recaptchaSiteKey' => getenv('recaptcha.siteKey') ?: ''
+            'recaptchaSiteKey' => $recaptchaSiteKey,
+            'recaptchaEnabled' => !empty($recaptchaSiteKey)
         ];
 
         return view('public/checkout', $data);
@@ -121,6 +124,9 @@ class EventController extends BaseController
             return redirect()->to('/')->with('error', 'Event tidak valid.');
         }
 
+        $recaptchaSiteKey = getenv('recaptcha.siteKey') ?: '';
+        $recaptchaEnabled = !empty($recaptchaSiteKey);
+
         $rules = [
             'category_id' => 'required|numeric',
             'full_name' => 'required|min_length[3]',
@@ -129,13 +135,18 @@ class EventController extends BaseController
             'birth_date' => 'required|valid_date[Y-m-d]',
             'gender' => 'required|in_list[M,F]',
             'emergency_contact' => 'required|min_length[5]',
-            'recaptcha_token' => 'required'
         ];
 
-        $recaptchaToken = $this->request->getPost('recaptcha_token');
-        $recaptchaValid = $this->verifyRecaptchaToken($recaptchaToken, 'checkout');
-        if (!$recaptchaValid['success']) {
-            return redirect()->back()->withInput()->with('error', $recaptchaValid['message']);
+        if ($recaptchaEnabled) {
+            $rules['recaptcha_token'] = 'required';
+        }
+
+        if ($recaptchaEnabled) {
+            $recaptchaToken = $this->request->getPost('recaptcha_token');
+            $recaptchaValid = $this->verifyRecaptchaToken($recaptchaToken, 'checkout');
+            if (!$recaptchaValid['success']) {
+                return redirect()->back()->withInput()->with('error', $recaptchaValid['message']);
+            }
         }
 
         if (!$this->validate($rules)) {
@@ -281,10 +292,13 @@ class EventController extends BaseController
             return redirect()->to('/')->with('error', 'Semua kategori sudah penuh.');
         }
 
+        $recaptchaSiteKey = getenv('recaptcha.siteKey') ?: '';
+
         return view('public/community_checkout', [
             'event' => $event,
             'categories' => $availableCategories,
-            'recaptchaSiteKey' => getenv('recaptcha.siteKey') ?: ''
+            'recaptchaSiteKey' => $recaptchaSiteKey,
+            'recaptchaEnabled' => !empty($recaptchaSiteKey)
         ]);
     }
 
@@ -301,18 +315,26 @@ class EventController extends BaseController
             return redirect()->to('/')->with('error', 'Event tidak ditemukan.');
         }
 
+        $recaptchaSiteKey = getenv('recaptcha.siteKey') ?: '';
+        $recaptchaEnabled = !empty($recaptchaSiteKey);
+
         $rules = [
             'category_id' => 'required|numeric',
             'email' => 'required|valid_email',
             'phone' => 'required|numeric',
             'club_name' => 'required|min_length[3]',
-            'recaptcha_token' => 'required'
         ];
 
-        $recaptchaToken = $this->request->getPost('recaptcha_token');
-        $recaptchaValid = $this->verifyRecaptchaToken($recaptchaToken, 'community');
-        if (!$recaptchaValid['success']) {
-            return redirect()->back()->withInput()->with('error', $recaptchaValid['message']);
+        if ($recaptchaEnabled) {
+            $rules['recaptcha_token'] = 'required';
+        }
+
+        if ($recaptchaEnabled) {
+            $recaptchaToken = $this->request->getPost('recaptcha_token');
+            $recaptchaValid = $this->verifyRecaptchaToken($recaptchaToken, 'community');
+            if (!$recaptchaValid['success']) {
+                return redirect()->back()->withInput()->with('error', $recaptchaValid['message']);
+            }
         }
 
         if (!$this->validate($rules)) {
