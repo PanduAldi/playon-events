@@ -19,13 +19,27 @@
             padding: var(--space-md);
             margin-bottom: var(--space-md);
         }
+        .thumbnail-container {
+            margin-top: var(--space-lg);
+            text-align: center;
+        }
         .event-thumbnail {
             width: 100%;
-            max-height: 320px;
+            max-height: 420px;
             border-radius: var(--radius-md);
             object-fit: cover;
-            margin-top: var(--space-lg);
+            display: block;
             border: 1px solid var(--color-mute);
+        }
+        .event-thumbnail.portrait {
+            width: auto;
+            max-width: 100%;
+            max-height: 600px;
+            margin: 0 auto;
+        }
+        .event-thumbnail.landscape {
+            width: 100%;
+            max-height: 360px;
         }
     </style>
 <?= $this->endSection() ?>
@@ -65,9 +79,11 @@
                 <h3 style="font-size: 24px; margin-bottom: var(--space-md);">Tentang Event</h3>
                 <p style="margin-bottom: var(--space-xl); white-space: pre-wrap;"><?= esc($event['description']) ?></p>
 
-
-            </div>
-            
+                <?php if (!empty($event['banner_image'])): ?>
+                    <div class="thumbnail-container">
+                        <img id="eventThumbnail" class="event-thumbnail" src="<?= base_url('uploads/' . $event['banner_image']) ?>" alt="Banner <?= esc($event['name']) ?>">
+                    </div>
+                <?php endif; ?>
             <div>
                 <div class="card-content" style="position: sticky; top: 100px;">
                     <h3 class="card-title" style="margin-bottom: var(--space-md);">Pilih Kategori</h3>
@@ -120,4 +136,32 @@
             </div>
         </div>
     </section>
+
+<?= $this->section('scripts') ?>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var thumbnail = document.getElementById('eventThumbnail');
+            if (!thumbnail) {
+                return;
+            }
+
+            function applyOrientation() {
+                if (!thumbnail.naturalWidth || !thumbnail.naturalHeight) {
+                    return;
+                }
+                thumbnail.classList.remove('portrait', 'landscape');
+                if (thumbnail.naturalWidth >= thumbnail.naturalHeight) {
+                    thumbnail.classList.add('landscape');
+                } else {
+                    thumbnail.classList.add('portrait');
+                }
+            }
+
+            if (thumbnail.complete) {
+                applyOrientation();
+            } else {
+                thumbnail.addEventListener('load', applyOrientation);
+            }
+        });
+    </script>
 <?= $this->endSection() ?>
