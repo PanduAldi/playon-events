@@ -59,6 +59,19 @@
             border-color: var(--color-primary);
             background-color: #fffaf7; /* very light orange */
         }
+        .event-banner {
+            width: 100%;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--color-mute);
+            object-fit: cover;
+            display: block;
+        }
+        .event-banner.landscape {
+            aspect-ratio: 16 / 9;
+        }
+        .event-banner.portrait {
+            aspect-ratio: 9 / 16;
+        }
     </style>
 <?= $this->endSection() ?>
 
@@ -199,7 +212,7 @@
                     </div>
 
                     <?php if ($event['banner_image']): ?>
-                        <img src="<?= base_url('uploads/' . $event['banner_image']) ?>" alt="Banner" style="width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--color-mute); aspect-ratio: 16/9; object-fit: cover;">
+                        <img id="eventBanner" class="event-banner" src="<?= base_url('uploads/' . $event['banner_image']) ?>" alt="Banner">
                     <?php endif; ?>
                 </div>
             </div>
@@ -213,7 +226,33 @@
     <?php if (!empty($recaptchaSiteKey)): ?>
         <script src="https://www.google.com/recaptcha/api.js?render=<?= esc($recaptchaSiteKey) ?>"></script>
         <script>
+
+            function updateBannerOrientation() {
+                var banner = document.getElementById('eventBanner');
+                if (!banner) {
+                    return;
+                }
+
+                function applyOrientation() {
+                    if (banner.naturalWidth && banner.naturalHeight) {
+                        banner.classList.remove('portrait', 'landscape');
+                        if (banner.naturalWidth >= banner.naturalHeight) {
+                            banner.classList.add('landscape');
+                        } else {
+                            banner.classList.add('portrait');
+                        }
+                    }
+                }
+
+                if (banner.complete) {
+                    applyOrientation();
+                } else {
+                    banner.addEventListener('load', applyOrientation);
+                }
+            }
+
             document.addEventListener('DOMContentLoaded', function () {
+                updateBannerOrientation();
                 var form = document.querySelector('form');
                 if (!form) return;
 
