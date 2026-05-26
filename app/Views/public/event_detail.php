@@ -115,12 +115,7 @@
                                             <span style="color: #c62828; font-weight: bold;">Kuota Penuh</span>
                                         <?php else: ?>
                                             Sisa Kuota: <?= $cat['max_participants'] - $catTotal ?>
-                                            <?php if (!empty($cat['max_individual'])): ?>
-                                                <br>Kuota Pribadi: <?= $cat['max_individual'] ?>
-                                            <?php endif; ?>
-                                            <?php if (!empty($cat['max_community'])): ?>
-                                                <br>Kuota Komunitas: <?= $cat['max_community'] ?>
-                                            <?php endif; ?>
+                                            
                                         <?php endif; ?>
                                     </div>
                                 </div>
