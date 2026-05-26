@@ -147,6 +147,32 @@ class AdminController extends BaseController
         return redirect()->back()->with('success', 'Status peserta berhasil diperbarui.');
     }
 
+    public function deleteParticipant($id)
+    {
+        // Protect from accidental GET deletes; route is POST-only.
+        $registrationModel = new RegistrationModel();
+        $participantModel = new ParticipantModel();
+
+        $registration = $registrationModel->find($id);
+        if (!$registration) {
+            return redirect()->to('/admin/participants')->with('error', 'Pendaftaran tidak ditemukan.');
+        }
+
+        $participantId = $registration['participant_id'] ?? null;
+
+        $registrationModel->delete($id);
+
+        // Optional cleanup: if participant has no other registrations, delete participant row too.
+        if ($participantId) {
+            $remaining = $registrationModel->where('participant_id', $participantId)->countAllResults();
+            if ($remaining === 0) {
+                $participantModel->delete($participantId);
+            }
+        }
+
+        return redirect()->to('/admin/participants')->with('success', 'Peserta berhasil dihapus.');
+    }
+
     public function exportParticipants()
     {
         $rows = $this->getRegistrationRows();

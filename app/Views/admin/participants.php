@@ -163,6 +163,10 @@
                             <td>
                                 <div class="action-row">
                                     <a href="<?= base_url('admin/participants/view/' . $reg['id']) ?>" class="btn-sm">Detail</a>
+                                    <form action="<?= base_url('admin/participants/delete/' . $reg['id']) ?>" method="post" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus peserta ini?');">
+                                        <?= csrf_field() ?>
+                                        <button type="submit" class="btn-sm" style="background-color: var(--color-danger); color: white; border-color: var(--color-danger);">Hapus</button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>

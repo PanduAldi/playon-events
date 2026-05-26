@@ -27,6 +27,7 @@ $routes->group('admin', ['filter' => 'admin'], function($routes) {
     $routes->get('participants/export', 'AdminController::exportParticipants');
     $routes->post('participants/update-status', 'AdminController::updateStatus');
     $routes->get('participants/view/(:num)', 'AdminController::viewParticipant/$1');
+    $routes->post('participants/delete/(:num)', 'AdminController::deleteParticipant/$1');
     $routes->get('scanner', 'AdminController::scanner');
     $routes->post('scanner/process', 'AdminController::processScan');
     
