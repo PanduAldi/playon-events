@@ -97,96 +97,103 @@
                 <?php endif; ?>
 
                 <?php $errors = session('errors') ?? []; ?>
-                <form action="<?= base_url('event/' . esc($event['slug']) . '/checkout') ?>" method="post">
-                    <?= csrf_field() ?>
-                    <input type="hidden" name="recaptcha_token" id="recaptcha_token" value="">
-                    
-                    <div class="form-group">
-                        <label class="form-label">Pilih Kategori *</label>
-                        <div class="radio-group">
-                            <?php foreach($categories as $cat): ?>
-                                <label class="radio-label">
-                                    <input type="radio" name="category_id" value="<?= $cat['id'] ?>" <?= old('category_id') == $cat['id'] ? 'checked' : '' ?> required>
-                                    <span><?= esc($cat['name']) ?> (<?= $cat['fee'] > 0 ? 'Rp ' . number_format($cat['fee'], 0, ',', '.') : 'Gratis' ?>)</span>
-                                </label>
-                            <?php endforeach; ?>
+                <?php if (!empty($categories)): ?>
+                    <form action="<?= base_url('event/' . esc($event['slug']) . '/checkout') ?>" method="post">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="recaptcha_token" id="recaptcha_token" value="">
+                        
+                        <div class="form-group">
+                            <label class="form-label">Pilih Kategori *</label>
+                            <div class="radio-group">
+                                <?php foreach($categories as $cat): ?>
+                                    <label class="radio-label">
+                                        <input type="radio" name="category_id" value="<?= $cat['id'] ?>" <?= old('category_id') == $cat['id'] ? 'checked' : '' ?> required>
+                                        <span><?= esc($cat['name']) ?> (<?= $cat['fee'] > 0 ? 'Rp ' . number_format($cat['fee'], 0, ',', '.') : 'Gratis' ?>)</span>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                            <?php if (!empty($errors['category_id'])): ?><div class="error-text"><?= esc($errors['category_id']) ?></div><?php endif; ?>
                         </div>
-                        <?php if (!empty($errors['category_id'])): ?><div class="error-text"><?= esc($errors['category_id']) ?></div><?php endif; ?>
-                    </div>
 
-                    <div style="display:none;">
-                        <label for="honeypot">Tidak diisi jika Anda bukan robot</label>
-                        <input type="text" id="honeypot" name="honeypot" value="">
-                    </div>
-
-                    <h3 style="margin: var(--space-2xl) 0 var(--space-md); font-size: 20px;">Data Diri</h3>
-
-                    <div class="form-group">
-                        <label class="form-label">Nama Lengkap Sesuai KTP *</label>
-                        <input type="text" name="full_name" class="form-control" value="<?= old('full_name') ?>" required>
-                        <?php if (!empty($errors['full_name'])): ?><div class="error-text"><?= esc($errors['full_name']) ?></div><?php endif; ?>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Email Aktif *</label>
-                        <input type="email" name="email" class="form-control" value="<?= old('email') ?>" required>
-                        <?php if (!empty($errors['email'])): ?><div class="error-text"><?= esc($errors['email']) ?></div><?php endif; ?>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Nomor WhatsApp *</label>
-                        <input type="tel" name="phone" class="form-control" value="<?= old('phone') ?>" required placeholder="08123456789" pattern="[0-9]{9,15}">
-                        <?php if (!empty($errors['phone'])): ?><div class="error-text"><?= esc($errors['phone']) ?></div><?php endif; ?>
-                    </div>
-
-                    <div style="display: flex; gap: var(--space-md);">
-                        <div class="form-group" style="flex: 1;">
-                            <label class="form-label">Tanggal Lahir *</label>
-                            <input type="date" name="birth_date" class="form-control" value="<?= old('birth_date') ?>" required>
+                        <div style="display:none;">
+                            <label for="honeypot">Tidak diisi jika Anda bukan robot</label>
+                            <input type="text" id="honeypot" name="honeypot" value="">
                         </div>
-                        <div class="form-group" style="flex: 1;">
-                            <label class="form-label">Jenis Kelamin *</label>
-                            <select name="gender" class="form-control" required>
-                                <option value="">Pilih...</option>
-                                <option value="M" <?= old('gender') == 'M' ? 'selected' : '' ?>>Laki-laki</option>
-                                <option value="F" <?= old('gender') == 'F' ? 'selected' : '' ?>>Perempuan</option>
+
+                        <h3 style="margin: var(--space-2xl) 0 var(--space-md); font-size: 20px;">Data Diri</h3>
+
+                        <div class="form-group">
+                            <label class="form-label">Nama Lengkap Sesuai KTP *</label>
+                            <input type="text" name="full_name" class="form-control" value="<?= old('full_name') ?>" required>
+                            <?php if (!empty($errors['full_name'])): ?><div class="error-text"><?= esc($errors['full_name']) ?></div><?php endif; ?>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Email Aktif *</label>
+                            <input type="email" name="email" class="form-control" value="<?= old('email') ?>" required>
+                            <?php if (!empty($errors['email'])): ?><div class="error-text"><?= esc($errors['email']) ?></div><?php endif; ?>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Nomor WhatsApp *</label>
+                            <input type="tel" name="phone" class="form-control" value="<?= old('phone') ?>" required placeholder="08123456789" pattern="[0-9]{9,15}">
+                            <?php if (!empty($errors['phone'])): ?><div class="error-text"><?= esc($errors['phone']) ?></div><?php endif; ?>
+                        </div>
+
+                        <div style="display: flex; gap: var(--space-md);">
+                            <div class="form-group" style="flex: 1;">
+                                <label class="form-label">Tanggal Lahir *</label>
+                                <input type="date" name="birth_date" class="form-control" value="<?= old('birth_date') ?>" required>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label class="form-label">Jenis Kelamin *</label>
+                                <select name="gender" class="form-control" required>
+                                    <option value="">Pilih...</option>
+                                    <option value="M" <?= old('gender') == 'M' ? 'selected' : '' ?>>Laki-laki</option>
+                                    <option value="F" <?= old('gender') == 'F' ? 'selected' : '' ?>>Perempuan</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="display: none;">
+                            <label class="form-label">Ukuran Kaos</label>
+                            <select name="shirt_size" class="form-control">
+                                <option value="">Tidak perlu kaos / Pilih...</option>
+                                <option value="XS">XS</option>
+                                <option value="S">S</option>
+                                <option value="M">M</option>
+                                <option value="L">L</option>
+                                <option value="XL">XL</option>
+                                <option value="XXL">XXL</option>
                             </select>
                         </div>
-                    </div>
 
-                    <div class="form-group" style="display: none;">
-                        <label class="form-label">Ukuran Kaos</label>
-                        <select name="shirt_size" class="form-control">
-                            <option value="">Tidak perlu kaos / Pilih...</option>
-                            <option value="XS">XS</option>
-                            <option value="S">S</option>
-                            <option value="M">M</option>
-                            <option value="L">L</option>
-                            <option value="XL">XL</option>
-                            <option value="XXL">XXL</option>
-                        </select>
-                    </div>
+                        <div class="form-group">
+                            <label class="form-label">Nama Club Lari / Komunitas (Opsional)</label>
+                            <input type="text" name="club_name" class="form-control" value="<?= old('club_name') ?>" placeholder="Contoh: Brebes Runner">
+                        </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Nama Club Lari / Komunitas (Opsional)</label>
-                        <input type="text" name="club_name" class="form-control" value="<?= old('club_name') ?>" placeholder="Contoh: Brebes Runner">
-                    </div>
+                        <div class="form-group">
+                            <label class="form-label">Kontak Darurat (Nama - Hubungan - Nomor HP) *</label>
+                            <input type="text" name="emergency_contact" class="form-control" value="<?= old('emergency_contact') ?>" required placeholder="Contoh: Budi (Ayah) - 08123456789">
+                            <?php if (!empty($errors['emergency_contact'])): ?><div class="error-text"><?= esc($errors['emergency_contact']) ?></div><?php endif; ?>
+                        </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Kontak Darurat (Nama - Hubungan - Nomor HP) *</label>
-                        <input type="text" name="emergency_contact" class="form-control" value="<?= old('emergency_contact') ?>" required placeholder="Contoh: Budi (Ayah) - 08123456789">
-                        <?php if (!empty($errors['emergency_contact'])): ?><div class="error-text"><?= esc($errors['emergency_contact']) ?></div><?php endif; ?>
-                    </div>
+                        <div class="form-group">
+                            <label class="form-label">Riwayat Penyakit / Catatan Medis (Opsional)</label>
+                            <textarea name="medical_notes" class="form-control" placeholder="Contoh: Asthma, Alergi obat pencahar, dll."><?= old('medical_notes') ?></textarea>
+                        </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Riwayat Penyakit / Catatan Medis (Opsional)</label>
-                        <textarea name="medical_notes" class="form-control" placeholder="Contoh: Asthma, Alergi obat pencahar, dll."><?= old('medical_notes') ?></textarea>
+                        <div style="margin-top: var(--space-xl);">
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">Daftar & Lanjut</button>
+                        </div>
+                    </form>
+                <?php else: ?>
+                    <div class="alert" style="background-color: #e8f5e9; color: #256029; border-color: #c8e6c9;">
+                        <strong>Kuota Penuh.</strong> Semua kategori untuk event ini sudah penuh.
+                        Silakan pilih event lain atau kembali lagi nanti.
                     </div>
-
-                    <div style="margin-top: var(--space-xl);">
-                        <button type="submit" class="btn btn-primary" style="width: 100%;">Daftar & Lanjut</button>
-                    </div>
-                </form>
+                <?php endif; ?>
             </div>
 
             <!-- Ringkasan Event -->
