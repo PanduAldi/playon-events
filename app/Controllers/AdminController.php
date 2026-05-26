@@ -238,7 +238,7 @@ class AdminController extends BaseController
     {
         $db = \Config\Database::connect();
         $builder = $db->table('registrations r');
-        $builder->select('r.id as reg_id, r.bib_number, r.payment_status, r.status, r.registered_at, r.attended_at, p.full_name, p.email, p.phone, e.id as event_id, e.name as event_name, c.name as category_name, c.fee, e.event_type');
+        $builder->select('r.id, r.bib_number, r.payment_status, r.status, r.registered_at, r.attended_at, p.full_name, p.email, p.phone, e.id as event_id, e.name as event_name, c.name as category_name, c.fee, e.event_type');
         $builder->join('participants p', 'p.id = r.participant_id');
         $builder->join('events e', 'e.id = r.event_id');
         $builder->join('event_categories c', 'c.id = r.category_id');
