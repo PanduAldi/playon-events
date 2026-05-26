@@ -47,6 +47,19 @@
         flex-wrap: wrap;
     }
 
+    /* Ensure destructive action is always visible even if CSS variables differ */
+    .btn-danger {
+        background: #dc3545 !important;
+        border-color: #dc3545 !important;
+        color: #fff !important;
+    }
+
+    .btn-danger:hover {
+        background: #bb2d3b !important;
+        border-color: #bb2d3b !important;
+        color: #fff !important;
+    }
+
     @media (max-width: 1000px) {
         .filters {
             grid-template-columns: 1fr;
@@ -165,7 +178,7 @@
                                     <a href="<?= base_url('admin/participants/view/' . $reg['id']) ?>" class="btn-sm">Detail</a>
                                     <form action="<?= base_url('admin/participants/delete/' . $reg['id']) ?>" method="post" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus peserta ini?');">
                                         <?= csrf_field() ?>
-                                        <button type="submit" class="btn-sm" style="background-color: var(--color-danger); color: white; border-color: var(--color-danger);">Hapus</button>
+                                        <button type="submit" class="btn-sm btn-danger">Hapus</button>
                                     </form>
                                 </div>
                             </td>
