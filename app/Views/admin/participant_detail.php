@@ -29,12 +29,12 @@
                 <p><strong>BIB:</strong> <?= esc($registration['bib_number']) ?></p>
                 <p><strong>Event:</strong> <?= esc($registration['event_name']) ?></p>
                 <p><strong>Kategori:</strong> <?= esc($registration['category_name']) ?></p>
+                <p><strong>Tipe Pendaftaran:</strong> <?= esc($registration['registration_type'] === 'community' ? 'Komunitas' : 'Pribadi') ?></p>
                 <p><strong>Biaya:</strong> <?= $registration['fee'] == 0 ? 'Gratis' : 'Rp ' . number_format($registration['fee'],0,',','.') ?></p>
                 <p><strong>Status Pembayaran:</strong> <?= esc(ucfirst($registration['payment_status'])) ?></p>
                 <p><strong>Status Peserta:</strong> <?= esc(ucfirst($registration['status'])) ?></p>
                 <p><strong>Waktu Daftar:</strong> <?= date('d M Y H:i', strtotime($registration['registered_at'])) ?></p>
                 <p><strong>Check-in:</strong> <?= !empty($registration['attended_at']) ? date('d M Y H:i', strtotime($registration['attended_at'])) : 'Belum hadir' ?></p>
-                <p><strong>QR Token:</strong> <?= esc($registration['qr_token']) ?></p>
                 <p><strong>Tipe Event:</strong> <?= esc(ucfirst($registration['event_type'])) ?></p>
                 <p><strong>Lokasi:</strong> <?= esc($registration['location']) ?></p>
                 <p><strong>Tanggal Event:</strong> <?= date('d M Y H:i', strtotime($registration['event_date'])) ?></p>

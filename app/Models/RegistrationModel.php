@@ -14,7 +14,7 @@ class RegistrationModel extends Model
     protected $protectFields    = true;
     protected $allowedFields    = [
         'participant_id', 'event_id', 'category_id', 'bib_number', 
-        'qr_token', 'payment_status', 'status', 'registered_at', 'attended_at'
+        'qr_token', 'payment_status', 'status', 'registration_type', 'registered_at', 'attended_at'
     ];
 
     protected $useTimestamps = false;

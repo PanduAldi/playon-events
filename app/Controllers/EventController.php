@@ -146,6 +146,7 @@ class EventController extends BaseController
                 'qr_token' => $qrToken,
                 'payment_status' => $paymentStatus,
                 'status' => $status,
+                'registration_type' => 'individual',
                 'registered_at' => date('Y-m-d H:i:s')
             ]);
 
@@ -339,6 +340,7 @@ class EventController extends BaseController
                     'qr_token' => $qrToken,
                     'payment_status' => $paymentStatus,
                     'status' => $paymentStatus === 'free' ? 'confirmed' : 'pending',
+                    'registration_type' => 'community',
                     'registered_at' => date('Y-m-d H:i:s')
                 ]);
 

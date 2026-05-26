@@ -107,6 +107,7 @@
                     <th>BIB / Tanggal</th>
                     <th>Peserta</th>
                     <th>Event & Kategori</th>
+                    <th>Tipe</th>
                     <th>Status Pembayaran</th>
                     <th>Status Peserta</th>
                     <th>Aksi</th>
@@ -128,6 +129,11 @@
                             <td>
                                 <div><?= esc($reg['event_name']) ?></div>
                                 <div style="font-size: 13px; color: var(--color-body-mid);"><?= esc($reg['category_name']) ?> (<?= $reg['fee'] == 0 ? 'Gratis' : 'Rp ' . number_format($reg['fee'],0,',','.') ?>)</div>
+                            </td>
+                            <td>
+                                <span class="badge badge-<?= esc($reg['registration_type'] === 'community' ? 'primary' : 'info') ?>">
+                                    <?= esc($reg['registration_type'] === 'community' ? 'Komunitas' : 'Pribadi') ?>
+                                </span>
                             </td>
                             <td>
                                 <?php if ($reg['payment_status'] === 'free'): ?>

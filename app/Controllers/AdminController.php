@@ -98,7 +98,7 @@ class AdminController extends BaseController
     {
         $db = \Config\Database::connect();
         $builder = $db->table('registrations r');
-        $builder->select('r.id, r.bib_number, r.payment_status, r.status, r.registered_at, r.attended_at, r.qr_token, p.full_name, p.email, p.phone, p.birth_date, p.gender, p.shirt_size, p.club_name, p.emergency_contact, p.medical_notes, e.name as event_name, e.event_date, e.location, e.event_type, c.name as category_name, c.fee');
+        $builder->select('r.id, r.bib_number, r.payment_status, r.status, r.registration_type, r.registered_at, r.attended_at, r.qr_token, p.full_name, p.email, p.phone, p.birth_date, p.gender, p.shirt_size, p.club_name, p.emergency_contact, p.medical_notes, e.name as event_name, e.event_date, e.location, e.event_type, c.name as category_name, c.fee');
         $builder->join('participants p', 'p.id = r.participant_id');
         $builder->join('events e', 'e.id = r.event_id');
         $builder->join('event_categories c', 'c.id = r.category_id');
@@ -257,7 +257,7 @@ class AdminController extends BaseController
     {
         $db = \Config\Database::connect();
         $builder = $db->table('registrations r');
-        $builder->select('r.id, r.bib_number, r.payment_status, r.status, r.registered_at, r.attended_at, p.full_name, p.email, p.phone, e.id as event_id, e.name as event_name, c.name as category_name, c.fee, e.event_type');
+        $builder->select('r.id, r.bib_number, r.payment_status, r.status, r.registration_type, r.registered_at, r.attended_at, p.full_name, p.email, p.phone, e.id as event_id, e.name as event_name, c.name as category_name, c.fee, e.event_type');
         $builder->join('participants p', 'p.id = r.participant_id');
         $builder->join('events e', 'e.id = r.event_id');
         $builder->join('event_categories c', 'c.id = r.category_id');
