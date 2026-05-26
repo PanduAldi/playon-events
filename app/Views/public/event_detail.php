@@ -116,10 +116,10 @@
                                         <?php else: ?>
                                             Sisa Kuota: <?= $cat['max_participants'] - $catTotal ?>
                                             <?php if (!empty($cat['max_individual'])): ?>
-                                                <br>Kuota Pribadi: <?= max(0, $cat['max_individual'] - ($cat['individual_registered_count'] ?? 0)) ?> dari <?= $cat['max_individual'] ?>
+                                                <br>Kuota Pribadi: <?= $cat['max_individual'] ?>
                                             <?php endif; ?>
                                             <?php if (!empty($cat['max_community'])): ?>
-                                                <br>Kuota Komunitas: <?= max(0, $cat['max_community'] - ($cat['community_registered_count'] ?? 0)) ?> dari <?= $cat['max_community'] ?>
+                                                <br>Kuota Komunitas: <?= $cat['max_community'] ?>
                                             <?php endif; ?>
                                         <?php endif; ?>
                                     </div>
