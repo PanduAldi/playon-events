@@ -87,6 +87,7 @@ class AdminController extends BaseController
                 'event_id' => $this->request->getGet('event_id'),
                 'payment_status' => $this->request->getGet('payment_status'),
                 'status' => $this->request->getGet('status'),
+                'registration_type' => $this->request->getGet('registration_type'),
                 'q' => $this->request->getGet('q'),
             ]
         ];
@@ -257,7 +258,7 @@ class AdminController extends BaseController
     {
         $db = \Config\Database::connect();
         $builder = $db->table('registrations r');
-        $builder->select('r.id, r.bib_number, r.payment_status, r.status, r.registration_type, r.registered_at, r.attended_at, p.full_name, p.email, p.phone, e.id as event_id, e.name as event_name, c.name as category_name, c.fee, e.event_type');
+        $builder->select('r.id, r.bib_number, r.payment_status, r.status, r.registration_type, r.registered_at, r.attended_at, p.full_name, p.email, p.phone, p.club_name, e.id as event_id, e.name as event_name, c.name as category_name, c.fee');
         $builder->join('participants p', 'p.id = r.participant_id');
         $builder->join('events e', 'e.id = r.event_id');
         $builder->join('event_categories c', 'c.id = r.category_id');
@@ -265,6 +266,7 @@ class AdminController extends BaseController
         $eventId = $this->request->getGet('event_id');
         $paymentStatus = $this->request->getGet('payment_status');
         $status = $this->request->getGet('status');
+        $registrationType = $this->request->getGet('registration_type');
         $keyword = trim((string) $this->request->getGet('q'));
 
         if ($eventId) {
@@ -277,6 +279,10 @@ class AdminController extends BaseController
 
         if (in_array($status, ['pending', 'confirmed', 'attended', 'cancelled'], true)) {
             $builder->where('r.status', $status);
+        }
+
+        if (in_array($registrationType, ['individual', 'community'], true)) {
+            $builder->where('r.registration_type', $registrationType);
         }
 
         if ($keyword !== '') {

@@ -79,6 +79,14 @@
             </select>
         </div>
         <div>
+            <label class="filter-label">Tipe pendaftaran</label>
+            <select name="registration_type" class="filter-control">
+                <option value="">Semua</option>
+                <option value="individual" <?= ($filters['registration_type'] ?? '') === 'individual' ? 'selected' : '' ?>>Pribadi</option>
+                <option value="community" <?= ($filters['registration_type'] ?? '') === 'community' ? 'selected' : '' ?>>Komunitas</option>
+            </select>
+        </div>
+        <div>
             <label class="filter-label">Pembayaran</label>
             <select name="payment_status" class="filter-control">
                 <option value="">Semua</option>
@@ -134,6 +142,9 @@
                                 <span class="badge badge-<?= esc($reg['registration_type'] === 'community' ? 'primary' : 'info') ?>">
                                     <?= esc($reg['registration_type'] === 'community' ? 'Komunitas' : 'Pribadi') ?>
                                 </span>
+                                <?php if ($reg['registration_type'] === 'community' && !empty($reg['club_name'])): ?>
+                                    <div style="font-size: 13px; color: var(--color-body-mid); margin-top: 6px;">Dari: <?= esc($reg['club_name']) ?></div>
+                                <?php endif; ?>
                             </td>
                             <td>
                                 <?php if ($reg['payment_status'] === 'free'): ?>
@@ -158,7 +169,7 @@
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="6" style="text-align: center; color: var(--color-body-mid);">Belum ada pendaftar.</td>
+                        <td colspan="7" style="text-align: center; color: var(--color-body-mid);">Belum ada pendaftar.</td>
                     </tr>
                 <?php endif; ?>
             </tbody>
