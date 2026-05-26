@@ -57,9 +57,6 @@
                 <span class="badge-pill badge-paid">Berbayar</span>
             <?php endif; ?>
             <h1 style="font-size: 48px; margin-top: var(--space-sm); margin-bottom: var(--space-md);"><?= esc($event['name']) ?></h1>
-            <?php if (!empty($event['banner_image'])): ?>
-                <img class="event-thumbnail" src="<?= base_url('uploads/' . $event['banner_image']) ?>" alt="Banner <?= esc($event['name']) ?>">
-            <?php endif; ?>
             <div style="display: flex; gap: var(--space-xl); color: var(--color-body-mid);">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
@@ -82,8 +79,10 @@
                 <?php if (!empty($event['banner_image'])): ?>
                     <div class="thumbnail-container">
                         <img id="eventThumbnail" class="event-thumbnail" src="<?= base_url('uploads/' . $event['banner_image']) ?>" alt="Banner <?= esc($event['name']) ?>">
+                        <div id="thumbnailOrientationLabel" style="margin-top: var(--space-sm); color: var(--color-body-mid); font-size: 0.95rem;"></div>
                     </div>
                 <?php endif; ?>
+            </div>
             <div>
                 <div class="card-content" style="position: sticky; top: 100px;">
                     <h3 class="card-title" style="margin-bottom: var(--space-md);">Pilih Kategori</h3>
@@ -150,10 +149,17 @@
                     return;
                 }
                 thumbnail.classList.remove('portrait', 'landscape');
+                var orientationLabel = document.getElementById('thumbnailOrientationLabel');
                 if (thumbnail.naturalWidth >= thumbnail.naturalHeight) {
                     thumbnail.classList.add('landscape');
+                    if (orientationLabel) {
+                        orientationLabel.textContent = 'Orientasi: Landscape';
+                    }
                 } else {
                     thumbnail.classList.add('portrait');
+                    if (orientationLabel) {
+                        orientationLabel.textContent = 'Orientasi: Portrait';
+                    }
                 }
             }
 
