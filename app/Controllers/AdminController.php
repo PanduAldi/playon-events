@@ -149,7 +149,8 @@ class AdminController extends BaseController
 
     public function deleteParticipant($id)
     {
-        // Protect from accidental GET deletes; route is POST-only.
+        // Route is POST-only (form submit), keep confirm on client side.
+        $db = \Config\Database::connect();
         $registrationModel = new RegistrationModel();
         $participantModel = new ParticipantModel();
 
@@ -159,19 +160,37 @@ class AdminController extends BaseController
         }
 
         $participantId = $registration['participant_id'] ?? null;
+        $categoryId = $registration['category_id'] ?? null;
 
-        $registrationModel->delete($id);
+        $db->transBegin();
+        try {
+            // Delete registration
+            $registrationModel->delete($id);
 
-        // Optional cleanup: if participant has no other registrations, delete participant row too.
-        if ($participantId) {
-            $remaining = $registrationModel->where('participant_id', $participantId)->countAllResults();
-            if ($remaining === 0) {
-                $participantModel->delete($participantId);
+            // Decrement total registered_count on the category (keep it >= 0)
+            if ($categoryId) {
+                $db->table('event_categories')
+                    ->where('id', $categoryId)
+                    ->set('registered_count', 'CASE WHEN registered_count > 0 THEN registered_count - 1 ELSE 0 END', false)
+                    ->update();
             }
+
+            // Optional cleanup: if participant has no other registrations, delete participant row too.
+            if ($participantId) {
+                $remaining = $registrationModel->where('participant_id', $participantId)->countAllResults();
+                if ($remaining === 0) {
+                    $participantModel->delete($participantId);
+                }
+            }
+
+            $db->transCommit();
+        } catch (\Throwable $e) {
+            $db->transRollback();
+            return redirect()->to(previous_url() ?: base_url('admin/participants'))
+                ->with('error', 'Gagal menghapus peserta: ' . $e->getMessage());
         }
 
         $redirectUrl = previous_url() ?: base_url('admin/participants');
-
         return redirect()->to($redirectUrl)->with('success', 'Peserta berhasil dihapus.');
     }
 
