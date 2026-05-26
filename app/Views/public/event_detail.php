@@ -19,6 +19,14 @@
             padding: var(--space-md);
             margin-bottom: var(--space-md);
         }
+        .event-thumbnail {
+            width: 100%;
+            max-height: 320px;
+            border-radius: var(--radius-md);
+            object-fit: cover;
+            margin-top: var(--space-lg);
+            border: 1px solid var(--color-mute);
+        }
     </style>
 <?= $this->endSection() ?>
 
@@ -35,6 +43,9 @@
                 <span class="badge-pill badge-paid">Berbayar</span>
             <?php endif; ?>
             <h1 style="font-size: 48px; margin-top: var(--space-sm); margin-bottom: var(--space-md);"><?= esc($event['name']) ?></h1>
+            <?php if (!empty($event['banner_image'])): ?>
+                <img class="event-thumbnail" src="<?= base_url('uploads/' . $event['banner_image']) ?>" alt="Banner <?= esc($event['name']) ?>">
+            <?php endif; ?>
             <div style="display: flex; gap: var(--space-xl); color: var(--color-body-mid);">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
@@ -53,6 +64,8 @@
             <div>
                 <h3 style="font-size: 24px; margin-bottom: var(--space-md);">Tentang Event</h3>
                 <p style="margin-bottom: var(--space-xl); white-space: pre-wrap;"><?= esc($event['description']) ?></p>
+
+
             </div>
             
             <div>
