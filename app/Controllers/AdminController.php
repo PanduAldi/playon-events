@@ -153,22 +153,9 @@ class AdminController extends BaseController
         $registrationModel = new RegistrationModel();
         $participantModel = new ParticipantModel();
 
-        $redirectTo = (string) $this->request->getPost('redirect_to');
-        $redirectPath = '/admin/participants';
-
-        if ($redirectTo !== '') {
-            $parts = parse_url($redirectTo);
-            $path = $parts['path'] ?? '';
-            $query = isset($parts['query']) ? ('?' . $parts['query']) : '';
-
-            if (is_string($path) && str_starts_with($path, '/admin/participants')) {
-                $redirectPath = $path . $query;
-            }
-        }
-
         $registration = $registrationModel->find($id);
         if (!$registration) {
-            return redirect()->to($redirectPath)->with('error', 'Pendaftaran tidak ditemukan.');
+            return redirect()->to('/admin/participants')->with('error', 'Pendaftaran tidak ditemukan.');
         }
 
         $participantId = $registration['participant_id'] ?? null;
@@ -183,7 +170,9 @@ class AdminController extends BaseController
             }
         }
 
-        return redirect()->to($redirectPath)->with('success', 'Peserta berhasil dihapus.');
+        $redirectUrl = previous_url() ?: base_url('admin/participants');
+
+        return redirect()->to($redirectUrl)->with('success', 'Peserta berhasil dihapus.');
     }
 
     public function exportParticipants()

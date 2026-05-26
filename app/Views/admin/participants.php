@@ -178,7 +178,6 @@
                                     <a href="<?= base_url('admin/participants/view/' . $reg['id']) ?>" class="btn-sm">Detail</a>
                                     <form action="<?= base_url('admin/participants/delete/' . $reg['id']) ?>" method="post" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus peserta ini?');">
                                         <?= csrf_field() ?>
-                                        <input type="hidden" name="redirect_to" value="<?= esc((string) current_url(true)) ?>">
                                         <button type="submit" class="btn-sm btn-danger">Hapus</button>
                                     </form>
                                 </div>
