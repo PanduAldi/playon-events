@@ -21,7 +21,7 @@
 
     <?= $this->renderSection('content') ?>
 
-    <footer class="footer">
+    <footer class="footer" style="margin-top: 2%">
         <div class="container">
             <p>&copy; <?= date('Y') ?> Playon Brebes. Didesain dengan penuh semangat.</p>
         </div>
