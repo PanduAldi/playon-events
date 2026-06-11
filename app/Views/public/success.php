@@ -1,4 +1,4 @@
-<?= $this->extend('public/layout') ?>
+<?= $this->extend('layouts/main') ?>
 
 <?= $this->section('title') ?>Pendaftaran Berhasil - <?= esc($event['name']) ?><?= $this->endSection() ?>
 

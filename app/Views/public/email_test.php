@@ -1,4 +1,4 @@
-<?= $this->extend('public/layout') ?>
+<?= $this->extend('layouts/main') ?>
 
 <?= $this->section('title') ?>Tes Email - Playon Events<?= $this->endSection() ?>
 

@@ -1,4 +1,4 @@
-<?= $this->extend('public/layout') ?>
+<?= $this->extend('layouts/main') ?>
 
 <?= $this->section('title') ?><?= esc($event['name']) ?> - Playon Events<?= $this->endSection() ?>
 
@@ -45,7 +45,8 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('nav_links') ?>
-    <a href="<?= base_url('/') ?>" style="font-weight: 600;">Kembali ke Beranda</a>
+    <a href="<?= base_url('/') ?>" style="font-weight: 600; margin-right: 20px;">Beranda</a>
+    <a href="<?= base_url('/jerseys') ?>" style="font-weight: 600;">Jersey Store</a>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>

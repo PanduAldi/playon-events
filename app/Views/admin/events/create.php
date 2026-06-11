@@ -1,4 +1,4 @@
-<?= $this->extend('admin/layout') ?>
+<?= $this->extend('layouts/admin') ?>
 
 <?= $this->section('title') ?>Tambah Event Baru - Playon Admin<?= $this->endSection() ?>
 

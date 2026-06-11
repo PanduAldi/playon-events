@@ -1,4 +1,4 @@
-<?= $this->extend('admin/layout') ?>
+<?= $this->extend('layouts/admin') ?>
 
 <?= $this->section('title') ?>Detail Peserta - <?= esc($registration['full_name']) ?><?= $this->endSection() ?>
 

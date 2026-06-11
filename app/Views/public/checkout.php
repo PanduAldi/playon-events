@@ -1,4 +1,4 @@
-<?= $this->extend('public/layout') ?>
+<?= $this->extend('layouts/main') ?>
 
 <?= $this->section('title') ?>Checkout - <?= esc($event['name']) ?><?= $this->endSection() ?>
 

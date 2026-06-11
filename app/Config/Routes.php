@@ -43,5 +43,19 @@ $routes->group('admin', ['filter' => 'admin'], function($routes) {
     $routes->post('categories/create', 'AdminController::createCategory');
     $routes->post('categories/update/(:num)', 'AdminController::updateCategory/$1');
     $routes->get('categories/delete/(:num)', 'AdminController::deleteCategory/$1');
+
+    // Jersey Store Admin
+    $routes->get('jerseys', 'JerseyAdminController::index');
+    $routes->get('jerseys/new', 'JerseyAdminController::new');
+    $routes->post('jerseys/create', 'JerseyAdminController::create');
+    $routes->get('jerseys/edit/(:num)', 'JerseyAdminController::edit/$1');
+    $routes->post('jerseys/update/(:num)', 'JerseyAdminController::update/$1');
+    $routes->get('jerseys/orders', 'JerseyAdminController::orders');
+    $routes->post('jerseys/orders/confirm/(:num)', 'JerseyAdminController::confirmOrder/$1');
 });
+
+// Jersey Store Public
+$routes->get('/jerseys', 'JerseyController::index');
+$routes->get('/jerseys/(:segment)', 'JerseyController::view/$1');
+$routes->post('/jerseys/checkout', 'JerseyController::checkout');
 

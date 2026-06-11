@@ -467,6 +467,7 @@
                 <a href="<?= base_url('admin/events') ?>" class="nav-item <?= $segment === 'events' ? 'active' : '' ?>">Events</a>
                 <a href="<?= base_url('admin/participants') ?>" class="nav-item <?= $segment === 'participants' ? 'active' : '' ?>">Peserta</a>
                 <a href="<?= base_url('admin/scanner') ?>" class="nav-item <?= $segment === 'scanner' ? 'active' : '' ?>">Scanner</a>
+                <a href="<?= base_url('admin/jerseys') ?>" class="nav-item <?= $segment === 'jerseys' ? 'active' : '' ?>">Jerseys</a>
             </nav>
             <div class="sidebar-footer">
                 <a href="<?= base_url('logout') ?>" class="nav-item nav-item-logout">Logout</a>

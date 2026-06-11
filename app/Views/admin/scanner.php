@@ -1,4 +1,4 @@
-<?= $this->extend('admin/layout') ?>
+<?= $this->extend('layouts/admin') ?>
 
 <?= $this->section('title') ?>QR Scanner Check-in - Playon Admin<?= $this->endSection() ?>
 

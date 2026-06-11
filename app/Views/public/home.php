@@ -1,9 +1,10 @@
-<?= $this->extend('public/layout') ?>
+<?= $this->extend('layouts/main') ?>
 
 <?= $this->section('title') ?>PlayonBrebes Events - Tempat Lari Kumpul Bersama<?= $this->endSection() ?>
 
 <?= $this->section('nav_links') ?>
-<a href="#" style="font-weight: 600;">Events</a>
+<a href="<?= base_url('/') ?>" style="font-weight: 600; margin-right: 20px;">Home</a>
+<a href="<?= base_url('/jerseys') ?>" style="font-weight: 600;">Jersey Store</a>
 <?= $this->endSection() ?>
 
 <?= $this->section('styles') ?>

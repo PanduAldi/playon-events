@@ -1,4 +1,4 @@
-<?= $this->extend('admin/layout') ?>
+<?= $this->extend('layouts/admin') ?>
 
 <?= $this->section('title') ?>Manajemen Event - Playon Admin<?= $this->endSection() ?>
 
